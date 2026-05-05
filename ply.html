@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>С Ш П — Стульный Школьный Переполох</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Nunito:wght@700;900&display=swap');
+
+  :root {
+    --chalk: #f5f0e0;
+    --board: #1a3a2a;
+    --accent: #ffd700;
+    --danger: #ff4444;
+    --safe: #44ff88;
+    --wood: #8B5E3C;
+    --desk: #c4955a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--board);
+    font-family: 'Nunito', sans-serif;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* ===== SCREENS ===== */
+  .screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
+
+  /* ===== MENU ===== */
+  #menuScreen {
+    background: radial-gradient(ellipse at 50% 40%, #1e4a34 0%, #0d2218 100%);
+  }
+
+  .chalk-title {
+    font-family: 'Russo One', sans-serif;
+    font-size: clamp(36px, 8vw, 80px);
+    color: var(--chalk);
+    text-shadow: 3px 3px 0 #333, 0 0 40px rgba(245,240,224,0.3);
+    letter-spacing: 12px;
+    margin-bottom: 8px;
+    animation: flicker 4s infinite;
+  }
+
+  @keyframes flicker {
+    0%,95%,100% { opacity:1; }
+    96% { opacity:0.85; }
+    98% { opacity:1; }
+    99% { opacity:0.9; }
+  }
+
+  .chalk-sub {
+    font-size: clamp(12px, 2vw, 18px);
+    color: rgba(245,240,224,0.6);
+    letter-spacing: 4px;
+    margin-bottom: 40px;
+    text-transform: uppercase;
+  }
+
+  .menu-chair {
+    font-size: 80px;
+    animation: bounce 1.5s ease-in-out infinite;
+    margin-bottom: 30px;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+  }
+
+  @keyframes bounce {
+    0%,100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+  }
+
+  .nick-input {
+    background: rgba(245,240,224,0.1);
+    border: 2px solid var(--chalk);
+    border-radius: 12px;
+    color: var(--chalk);
+    font-family: 'Nunito', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    padding: 12px 24px;
+    text-align: center;
+    width: 280px;
+    margin-bottom: 20px;
+    outline: none;
+    letter-spacing: 2px;
+  }
+
+  .nick-input::placeholder { color: rgba(245,240,224,0.4); }
+  .nick-input:focus { border-color: var(--accent); box-shadow: 0 0 20px rgba(255,215,0,0.3); }
+
+  .mode-buttons {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .mode-btn {
+    background: rgba(245,240,224,0.08);
+    border: 2px solid rgba(245,240,224,0.3);
+    border-radius: 10px;
+    color: var(--chalk);
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 900;
+    padding: 8px 16px;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .mode-btn:hover, .mode-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #1a1a1a;
+    transform: scale(1.05);
+  }
+
+  .play-btn {
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    border: none;
+    border-radius: 16px;
+    color: #1a1a1a;
+    cursor: pointer;
+    font-family: 'Russo One', sans-serif;
+    font-size: 22px;
+    letter-spacing: 3px;
+    padding: 16px 48px;
+    transition: all 0.2s;
+    box-shadow: 0 8px 32px rgba(255,215,0,0.4);
+  }
+
+  .play-btn:hover { transform: scale(1.06) translateY(-2px); box-shadow: 0 12px 40px rgba(255,215,0,0.6); }
+  .play-btn:active { transform: scale(0.98); }
+
+  /* ===== GAME CANVAS AREA ===== */
+  #gameArea {
+    position: fixed;
+    inset: 0;
+    display: none;
+  }
+
+  #gameCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ===== HUD ===== */
+  #hud {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    display: none;
+    padding: 10px 16px;
+    gap: 12px;
+    z-index: 50;
+    align-items: center;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%);
+    justify-content: space-between;
+  }
+
+  .hud-coins {
+    font-family: 'Russo One', sans-serif;
+    font-size: 22px;
+    color: var(--accent);
+    text-shadow: 0 0 10px rgba(255,215,0,0.6);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .hud-nick {
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--chalk);
+    letter-spacing: 1px;
+  }
+
+  .hud-abilities {
+    display: flex;
+    gap: 8px;
+  }
+
+  .ability-slot {
+    background: rgba(0,0,0,0.5);
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .ability-slot:hover { border-color: var(--accent); transform: scale(1.1); }
+  .ability-slot.on-cooldown { opacity: 0.4; }
+
+  .cooldown-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    border-radius: 8px;
+    display: none;
+  }
+
+  .ability-slot.on-cooldown .cooldown-overlay { display: block; }
+
+  .mini-map {
+    width: 80px;
+    height: 60px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ===== LEADERBOARD ===== */
+  #leaderboard {
+    position: fixed;
+    top: 70px;
+    right: 12px;
+    background: rgba(0,0,0,0.65);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 10px 14px;
+    min-width: 160px;
+    display: none;
+    z-index: 50;
+  }
+
+  .lb-title {
+    font-family: 'Russo One', sans-serif;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .lb-row {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--chalk);
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+
+  .lb-row.me { color: var(--accent); }
+
+  /* ===== ALERT ===== */
+  #alertBanner {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--danger);
+    color: #fff;
+    font-family: 'Russo One', sans-serif;
+    font-size: 18px;
+    letter-spacing: 2px;
+    padding: 10px 28px;
+    border-radius: 12px;
+    display: none;
+    z-index: 60;
+    box-shadow: 0 4px 20px rgba(255,68,68,0.6);
+    animation: shake 0.3s ease-in-out;
+  }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(-50%) rotate(0deg); }
+    25% { transform: translateX(-50%) rotate(-2deg); }
+    75% { transform: translateX(-50%) rotate(2deg); }
+  }
+
+  /* ===== WIN MODAL ===== */
+  #winModal {
+    display: none;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
+  }
+
+  .win-box {
+    background: linear-gradient(135deg, #1a3a2a, #0d2218);
+    border: 3px solid var(--accent);
+    border-radius: 24px;
+    padding: 40px 50px;
+    text-align: center;
+    max-width: 420px;
+    box-shadow: 0 0 80px rgba(255,215,0,0.3);
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .win-emoji { font-size: 64px; animation: spin 2s linear infinite; display: block; margin-bottom: 12px; }
+  @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+
+  .win-title {
+    font-family: 'Russo One', sans-serif;
+    font-size: 36px;
+    color: var(--accent);
+    text-shadow: 0 0 30px rgba(255,215,0,0.8);
+    margin-bottom: 8px;
+  }
+
+  .win-text { color: var(--chalk); font-size: 16px; line-height: 1.6; margin-bottom: 24px; }
+
+  .win-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  .win-btn {
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    font-weight: 900;
+    padding: 12px 24px;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+
+  .win-btn-primary {
+    background: linear-gradient(135deg, #25D366, #128C7E);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(37,211,102,0.4);
+  }
+
+  .win-btn-primary:hover { transform: scale(1.05); }
+
+  .win-btn-secondary {
+    background: rgba(245,240,224,0.1);
+    color: var(--chalk);
+    border: 1px solid rgba(245,240,224,0.2);
+  }
+
+  .win-btn-secondary:hover { background: rgba(245,240,224,0.2); }
+
+  /* ===== NATALIA SPEECH ===== */
+  #speech {
+    position: fixed;
+    bottom: 80px;
+    left: 20px;
+    background: rgba(0,0,0,0.75);
+    border-left: 4px solid var(--danger);
+    border-radius: 0 12px 12px 0;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 10px 16px;
+    display: none;
+    z-index: 60;
+    max-width: 240px;
+    animation: slideIn 0.3s ease;
+  }
+
+  @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+
+  .speech-name { font-size: 11px; color: var(--danger); letter-spacing: 1px; margin-bottom: 3px; text-transform: uppercase; }
+
+  /* ===== CONTROLS HINT ===== */
+  #controlsHint {
+    position: fixed;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(245,240,224,0.4);
+    font-size: 12px;
+    text-align: center;
+    z-index: 50;
+    letter-spacing: 1px;
+  }
+
+  /* ===== MOBILE CONTROLS ===== */
+  #mobileControls {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    display: none;
+    z-index: 55;
+    gap: 4px;
+    grid-template-columns: 44px 44px 44px;
+    grid-template-rows: 44px 44px 44px;
+  }
+
+  .dpad-btn {
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    color: var(--chalk);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .dpad-btn:active { background: rgba(255,215,0,0.3); }
+
+  #mobileAbilities {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: none;
+    z-index: 55;
+    gap: 8px;
+    flex-direction: column;
+  }
+
+  .mob-ability {
+    background: rgba(0,0,0,0.5);
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    font-size: 22px;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mob-ability:active { background: rgba(255,215,0,0.3); border-color: var(--accent); }
+
+  /* ===== AVLYUTAR POPUP ===== */
+  .avlyutar-popup {
+    position: fixed;
+    font-family: 'Russo One', sans-serif;
+    font-size: 14px;
+    color: var(--accent);
+    pointer-events: none;
+    z-index: 70;
+    animation: floatUp 1s forwards;
+  }
+
+  @keyframes floatUp {
+    from { transform: translateY(0); opacity: 1; }
+    to { transform: translateY(-60px); opacity: 0; }
+  }
+
+  /* ===== STUNNED ===== */
+  #stunnedOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255,68,68,0.15);
+    display: none;
+    z-index: 45;
+    pointer-events: none;
+    animation: stunnedPulse 0.5s ease-in-out infinite;
+  }
+
+  @keyframes stunnedPulse {
+    0%,100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<!-- MENU -->
+<div id="menuScreen" class="screen">
+  <div class="menu-chair">🪑</div>
+  <div class="chalk-title">С Ш П</div>
+  <div class="chalk-sub">Стульный Школьный Переполох</div>
+  <input class="nick-input" id="nickInput" placeholder="Твой ник..." maxlength="12" />
+  <div class="mode-buttons">
+    <button class="mode-btn active" data-mode="classic">📚 Классика (100)</button>
+    <button class="mode-btn" data-mode="fast">⚡ Быстрый (50)</button>
+    <button class="mode-btn" data-mode="chaos">🔥 ХАОС</button>
+  </div>
+  <button class="play-btn" id="playBtn">ИГРАТЬ!</button>
+</div>
+
+<!-- GAME -->
+<div id="gameArea">
+  <canvas id="gameCanvas"></canvas>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <div>
+    <div class="hud-nick" id="hudNick">—</div>
+    <div class="hud-coins">🪙 <span id="hudCoins">0</span></div>
+  </div>
+  <div class="hud-abilities">
+    <div class="ability-slot" id="abilityTurbo" title="Турбо-ножка [Q]">⚡<div class="cooldown-overlay"></div></div>
+    <div class="ability-slot" id="abilitySpinx" title="Крутилка [W]">🌀<div class="cooldown-overlay"></div></div>
+    <div class="ability-slot" id="abilityGhost" title="Тихий режим [E]">👻<div class="cooldown-overlay"></div></div>
+    <div class="ability-slot" id="abilityShield" title="Щит [R]">🛡<div class="cooldown-overlay"></div></div>
+  </div>
+  <div class="mini-map" id="miniMap">
+    <canvas id="miniCanvas" width="80" height="60"></canvas>
+  </div>
+</div>
+
+<div id="leaderboard">
+  <div class="lb-title">🏆 Лидеры</div>
+  <div id="lbRows"></div>
+</div>
+
+<div id="alertBanner"></div>
+<div id="stunnedOverlay"></div>
+
+<div id="speech">
+  <div class="speech-name">👩‍🏫 Наталия</div>
+  <div id="speechText"></div>
+</div>
+
+<div id="controlsHint">WASD / стрелки — движение | Q W E R — способности | SHIFT — спринт</div>
+
+<!-- MOBILE CONTROLS -->
+<div id="mobileControls" style="display:grid;">
+  <div></div>
+  <div class="dpad-btn" id="mbUp">▲</div>
+  <div></div>
+  <div class="dpad-btn" id="mbLeft">◀</div>
+  <div class="dpad-btn" id="mbDown">▼</div>
+  <div class="dpad-btn" id="mbRight">▶</div>
+  <!-- sprint -->
+  <div class="dpad-btn" id="mbSprint" style="grid-column:1/4; margin-top:4px; font-size:13px; font-weight:900;">⚡ СПРИНТ</div>
+</div>
+
+<div id="mobileAbilities" style="display:flex;">
+  <div class="mob-ability" data-ab="turbo">⚡</div>
+  <div class="mob-ability" data-ab="spin">🌀</div>
+  <div class="mob-ability" data-ab="ghost">👻</div>
+  <div class="mob-ability" data-ab="shield">🛡</div>
+</div>
+
+<!-- WIN MODAL -->
+<div id="winModal" class="screen">
+  <div class="win-box">
+    <span class="win-emoji">🎉</span>
+    <div class="win-title">ПОБЕДА!</div>
+    <div class="win-text" id="winText"></div>
+    <div class="win-buttons">
+      <button class="win-btn win-btn-primary" id="winLink">📱 Открыть ссылку</button>
+      <button class="win-btn win-btn-secondary" id="winClose">✕ Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===================================================
+   С Ш П — Стульный Школьный Переполох
+   Full single-file game
+=================================================== */
+
+const WHATSAPP_LINK = 'https://chat.whatsapp.com/CA9VzOekOoGJeVBxCMuOmF';
+
+// ---- State ----
+let playerNick = 'Игрок';
+let gameMode = 'classic'; // classic / fast / chaos
+let targetCoins = 100;
+let gameRunning = false;
+let stunned = false;
+let stunTimer = 0;
+let ghostActive = false;
+let ghostTimer = 0;
+let shieldActive = false;
+let shieldTimer = 0;
+let spinActive = false;
+let spinTimer = 0;
+let turboActive = false;
+let turboTimer = 0;
+
+// Controls
+const keys = {};
+const mobileKeys = { up:false, down:false, left:false, right:false, sprint:false };
+
+// Canvas
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const miniCanvas = document.getElementById('miniCanvas');
+const mctx = miniCanvas.getContext('2d');
+
+// World size
+const WORLD_W = 1400;
+const WORLD_H = 1000;
+
+// Camera
+let camX = 0, camY = 0;
+
+// Player
+const player = {
+  x: 200, y: 200, w: 36, h: 36,
+  vx: 0, vy: 0,
+  speed: 180,
+  coins: 0,
+  avlyutar: 0,
+  eyeTimer: 0,
+  blinking: false,
+  scared: false,
+  scaredTimer: 0,
+  angle: 0,
+  spinAngle: 0,
+};
+
+// Bots (fake players)
+const BOT_NICKS = ['Петя','Вася','Антоха','Дрон','Лёха','Катюша','Рита','Макс','Саша','Ника'];
+const bots = [];
+
+// Teacher (Natalia)
+const teachers = [];
+
+// Coins
+const coins = [];
+
+// Desks & walls (obstacles)
+const desks = [];
+const walls = [];
+
+// ---- Mode setup ----
+let modeBtns = document.querySelectorAll('.mode-btn');
+modeBtns.forEach(b => {
+  b.addEventListener('click', () => {
+    modeBtns.forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    gameMode = b.dataset.mode;
+  });
+});
+
+// ---- PLAY ----
+document.getElementById('playBtn').addEventListener('click', startGame);
+document.getElementById('nickInput').addEventListener('keydown', e => { if (e.key === 'Enter') startGame(); });
+
+function startGame() {
+  const nick = document.getElementById('nickInput').value.trim();
+  playerNick = nick || 'Стул';
+  document.getElementById('hudNick').textContent = '🪑 ' + playerNick;
+
+  if (gameMode === 'fast') targetCoins = 50;
+  else targetCoins = 100;
+
+  document.getElementById('menuScreen').style.display = 'none';
+  document.getElementById('gameArea').style.display = 'block';
+  document.getElementById('hud').style.display = 'flex';
+  document.getElementById('leaderboard').style.display = 'block';
+
+  // Mobile detection
+  if ('ontouchstart' in window) {
+    document.getElementById('mobileControls').style.display = 'grid';
+    document.getElementById('mobileAbilities').style.display = 'flex';
+    document.getElementById('controlsHint').style.display = 'none';
+  }
+
+  initWorld();
+  gameRunning = true;
+  lastTime = performance.now();
+  requestAnimationFrame(gameLoop);
+}
+
+function initWorld() {
+  // Reset player
+  player.x = 200; player.y = 200;
+  player.coins = 0; player.avlyutar = 0;
+  player.vx = 0; player.vy = 0;
+  player.scared = false;
+
+  // Walls (classroom border)
+  walls.length = 0;
+  walls.push({x:0,y:0,w:WORLD_W,h:20});
+  walls.push({x:0,y:WORLD_H-20,w:WORLD_W,h:20});
+  walls.push({x:0,y:0,w:20,h:WORLD_H});
+  walls.push({x:WORLD_W-20,y:0,w:20,h:WORLD_H});
+
+  // Desks
+  desks.length = 0;
+  const deskPositions = [
+    {x:100,y:120},{x:240,y:120},{x:380,y:120},{x:520,y:120},{x:660,y:120},{x:800,y:120},{x:940,y:120},{x:1080,y:120},{x:1200,y:120},
+    {x:100,y:260},{x:240,y:260},{x:380,y:260},{x:520,y:260},{x:660,y:260},{x:800,y:260},{x:940,y:260},{x:1080,y:260},{x:1200,y:260},
+    {x:100,y:400},{x:240,y:400},{x:380,y:400},{x:520,y:400},{x:660,y:400},{x:800,y:400},{x:940,y:400},{x:1080,y:400},{x:1200,y:400},
+    {x:100,y:540},{x:240,y:540},{x:380,y:540},{x:520,y:540},{x:660,y:540},{x:800,y:540},{x:940,y:540},{x:1080,y:540},{x:1200,y:540},
+    {x:100,y:680},{x:240,y:680},{x:380,y:680},{x:520,y:680},{x:660,y:680},{x:800,y:680},{x:940,y:680},{x:1080,y:680},{x:1200,y:680},
+    {x:100,y:820},{x:240,y:820},{x:380,y:820},{x:520,y:820},{x:660,y:820},{x:800,y:820},{x:940,y:820},{x:1080,y:820},{x:1200,y:820},
+  ];
+  deskPositions.forEach(d => desks.push({x:d.x, y:d.y, w:80, h:50}));
+
+  // Coins
+  coins.length = 0;
+  spawnCoins(30);
+
+  // Bots
+  bots.length = 0;
+  const botCount = 8;
+  for (let i = 0; i < botCount; i++) {
+    bots.push({
+      x: 300 + Math.random()*800,
+      y: 300 + Math.random()*500,
+      w: 36, h: 36,
+      vx: 0, vy: 0,
+      coins: 0,
+      nick: BOT_NICKS[i] || ('Стул'+i),
+      speed: 120 + Math.random()*60,
+      targetCoin: null,
+      scared: false,
+      scaredTimer: 0,
+      angle: 0,
+      spinAngle: 0,
+      eyeTimer: Math.random()*200,
+    });
+  }
+
+  // Teachers
+  teachers.length = 0;
+  const tCount = gameMode === 'chaos' ? 3 : 1;
+  for (let i = 0; i < tCount; i++) {
+    teachers.push({
+      x: 700 + i*100, y: 480 + i*50,
+      w: 44, h: 44,
+      vx: 0, vy: 0,
+      speed: 100,
+      target: null,
+      state: 'patrol', // patrol / chase
+      patrolTarget: {x: 700, y: 480},
+      patrolTimer: 0,
+      visionRange: 200,
+      chaseRange: 260,
+      angle: 0,
+      speechTimer: 0,
+      chaseTime: 0,
+    });
+  }
+
+  // Cooldowns
+  cooldowns.turbo = 0;
+  cooldowns.spin = 0;
+  cooldowns.ghost = 0;
+  cooldowns.shield = 0;
+
+  stunned = false;
+  ghostActive = false;
+  shieldActive = false;
+  spinActive = false;
+  turboActive = false;
+
+  resizeCanvas();
+}
+
+function spawnCoins(n) {
+  for (let i = 0; i < n; i++) {
+    let attempts = 0;
+    let cx, cy, ok;
+    do {
+      cx = 40 + Math.random()*(WORLD_W-80);
+      cy = 40 + Math.random()*(WORLD_H-80);
+      ok = true;
+      desks.forEach(d => { if (rectsOverlap({x:cx-10,y:cy-10,w:20,h:20}, d)) ok = false; });
+      walls.forEach(w => { if (rectsOverlap({x:cx-10,y:cy-10,w:20,h:20}, w)) ok = false; });
+      attempts++;
+    } while (!ok && attempts < 50);
+    coins.push({x:cx, y:cy, r:9, anim: Math.random()*Math.PI*2});
+  }
+}
+
+// ---- Cooldowns ----
+const cooldowns = { turbo:0, spin:0, ghost:0, shield:0 };
+const COOLDOWN_TIMES = { turbo:4000, spin:5000, ghost:6000, shield:8000 };
+const ABILITY_DURATION = { turbo:1200, spin:1000, ghost:4000, shield:3000 };
+
+// ---- Key handlers ----
+window.addEventListener('keydown', e => {
+  keys[e.key.toLowerCase()] = true;
+  if (e.key === 'q' || e.key === 'й') useAbility('turbo');
+  if (e.key === 'w' || e.key === 'ц') { if (!gameRunning) return; /* wasd movement */ }
+  if (e.key === 'e' || e.key === 'у') useAbility('ghost');
+  if (e.key === 'r' || e.key === 'к') useAbility('shield');
+  // Prevent page scroll
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+});
+window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+// Mobile dpad
+function setupMobile() {
+  function hold(id, dir) {
+    const el = document.getElementById(id);
+    el.addEventListener('touchstart', e => { e.preventDefault(); mobileKeys[dir] = true; }, {passive:false});
+    el.addEventListener('touchend', e => { e.preventDefault(); mobileKeys[dir] = false; }, {passive:false});
+    el.addEventListener('touchcancel', () => { mobileKeys[dir] = false; });
+  }
+  hold('mbUp','up'); hold('mbDown','down'); hold('mbLeft','left'); hold('mbRight','right');
+  const sprint = document.getElementById('mbSprint');
+  sprint.addEventListener('touchstart', e => { e.preventDefault(); mobileKeys.sprint = true; });
+  sprint.addEventListener('touchend', e => { e.preventDefault(); mobileKeys.sprint = false; });
+
+  document.querySelectorAll('.mob-ability').forEach(el => {
+    el.addEventListener('touchstart', e => { e.preventDefault(); useAbility(el.dataset.ab); });
+  });
+}
+setupMobile();
+
+// Ability buttons
+document.getElementById('abilityTurbo').addEventListener('click', () => useAbility('turbo'));
+document.getElementById('abilitySpinx').addEventListener('click', () => useAbility('spin'));
+document.getElementById('abilityGhost').addEventListener('click', () => useAbility('ghost'));
+document.getElementById('abilityShield').addEventListener('click', () => useAbility('shield'));
+
+function useAbility(name) {
+  if (!gameRunning || stunned) return;
+  if (cooldowns[name] > 0) return;
+  cooldowns[name] = COOLDOWN_TIMES[name];
+  if (name === 'turbo') { turboActive = true; turboTimer = ABILITY_DURATION.turbo; }
+  if (name === 'spin') { spinActive = true; spinTimer = ABILITY_DURATION.spin; }
+  if (name === 'ghost') { ghostActive = true; ghostTimer = ABILITY_DURATION.ghost; }
+  if (name === 'shield') { shieldActive = true; shieldTimer = ABILITY_DURATION.shield; }
+  showAlert(name === 'turbo' ? '⚡ ТУРБО!' : name === 'spin' ? '🌀 КРУТИЛКА!' : name === 'ghost' ? '👻 ТИХИЙ РЕЖИМ' : '🛡 ЩИТ!', 1200);
+}
+
+// ---- Win ----
+document.getElementById('winLink').addEventListener('click', () => { window.open(WHATSAPP_LINK, '_blank'); });
+document.getElementById('winClose').addEventListener('click', () => {
+  document.getElementById('winModal').style.display = 'none';
+  document.getElementById('menuScreen').style.display = 'flex';
+  document.getElementById('gameArea').style.display = 'none';
+  document.getElementById('hud').style.display = 'none';
+  document.getElementById('leaderboard').style.display = 'none';
+  gameRunning = false;
+});
+
+function triggerWin() {
+  gameRunning = false;
+  document.getElementById('winText').innerHTML =
+    `Ты собрал ${targetCoins} монет!<br><br><b>${playerNick}</b>, ты лучший стул в классе!<br><br>Зайди по ссылке и напиши, что ты выиграл:`;
+  document.getElementById('winModal').style.display = 'flex';
+}
+
+// ---- Alert ----
+let alertTimeout = null;
+function showAlert(text, duration = 2000) {
+  const el = document.getElementById('alertBanner');
+  el.textContent = text;
+  el.style.display = 'block';
+  if (alertTimeout) clearTimeout(alertTimeout);
+  alertTimeout = setTimeout(() => { el.style.display = 'none'; }, duration);
+}
+
+// ---- Natalia speeches ----
+const SPEECHES = [
+  'Стоять!', 'Кто тут бегает?!', 'Встань к доске!',
+  'Это что такое?!', 'Дневник на стол!', 'Сядьте немедленно!',
+  'Выйди из класса!', 'Тишина!!', 'Куда?! Назад!'
+];
+
+function showSpeech(text) {
+  const el = document.getElementById('speech');
+  document.getElementById('speechText').textContent = text;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 2500);
+}
+
+// ---- AVLYUTAR popup ----
+function showAvlyutar(x, y, amount) {
+  const el = document.createElement('div');
+  el.className = 'avlyutar-popup';
+  el.textContent = `+${amount} АВЛЮТАР`;
+  const sx = x - camX + canvas.offsetLeft;
+  const sy = y - camY + canvas.offsetTop;
+  el.style.left = sx + 'px';
+  el.style.top = sy + 'px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1000);
+}
+
+// ---- Resize ----
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// ---- Helpers ----
+function rectsOverlap(a, b) {
+  return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y;
+}
+
+function dist(a, b) {
+  return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function clamp(v, mn, mx) { return Math.max(mn, Math.min(mx, v)); }
+
+function moveEntity(e, dx, dy) {
+  const margin = 2;
+  e.x += dx;
+  // Resolve X
+  [...desks, ...walls].forEach(ob => {
+    if (rectsOverlap({x:e.x,y:e.y,w:e.w,h:e.h}, ob)) {
+      if (dx > 0) e.x = ob.x - e.w - margin;
+      else if (dx < 0) e.x = ob.x + ob.w + margin;
+    }
+  });
+  e.x = clamp(e.x, 22, WORLD_W - e.w - 22);
+
+  e.y += dy;
+  [...desks, ...walls].forEach(ob => {
+    if (rectsOverlap({x:e.x,y:e.y,w:e.w,h:e.h}, ob)) {
+      if (dy > 0) e.y = ob.y - e.h - margin;
+      else if (dy < 0) e.y = ob.y + ob.h + margin;
+    }
+  });
+  e.y = clamp(e.y, 22, WORLD_H - e.h - 22);
+}
+
+// ---- Game Loop ----
+let lastTime = 0;
+
+function gameLoop(ts) {
+  if (!gameRunning) return;
+  const dt = Math.min((ts - lastTime) / 1000, 0.05);
+  lastTime = ts;
+  update(dt);
+  render();
+  requestAnimationFrame(gameLoop);
+}
+
+function update(dt) {
+  updateAbilityCooldowns(dt);
+  updatePlayer(dt);
+  updateBots(dt);
+  updateTeachers(dt);
+  updateCamera();
+  checkCoinPickup();
+  checkWin();
+  maintainCoinCount();
+  updateLeaderboard();
+  updateMiniMap();
+}
+
+function updateAbilityCooldowns(dt) {
+  const ms = dt * 1000;
+  ['turbo','spin','ghost','shield'].forEach(ab => {
+    if (cooldowns[ab] > 0) cooldowns[ab] = Math.max(0, cooldowns[ab] - ms);
+  });
+  // Active timers
+  if (turboTimer > 0) { turboTimer -= ms; if (turboTimer <= 0) turboActive = false; }
+  if (spinTimer > 0) { spinTimer -= ms; if (spinTimer <= 0) spinActive = false; }
+  if (ghostTimer > 0) { ghostTimer -= ms; if (ghostTimer <= 0) ghostActive = false; }
+  if (shieldTimer > 0) { shieldTimer -= ms; if (shieldTimer <= 0) shieldActive = false; }
+  if (stunTimer > 0) {
+    stunTimer -= ms;
+    if (stunTimer <= 0) { stunned = false; document.getElementById('stunnedOverlay').style.display = 'none'; }
+  }
+
+  // Cooldown UI
+  ['turbo','spin','ghost','shield'].forEach((ab, i) => {
+    const ids = ['abilityTurbo','abilitySpinx','abilityGhost','abilityShield'];
+    const el = document.getElementById(ids[i]);
+    if (cooldowns[ab] > 0) el.classList.add('on-cooldown');
+    else el.classList.remove('on-cooldown');
+  });
+
+  // Coin anim
+  coins.forEach(c => c.anim += dt * 3);
+}
+
+function updatePlayer(dt) {
+  if (stunned) { player.scared = true; return; }
+
+  let dx = 0, dy = 0;
+  const up = keys['arrowup'] || keys['w'] || keys['ц'] || mobileKeys.up;
+  const down = keys['arrowdown'] || keys['s'] || keys['ы'] || mobileKeys.down;
+  const left = keys['arrowleft'] || keys['a'] || keys['ф'] || mobileKeys.left;
+  const right = keys['arrowright'] || keys['d'] || keys['в'] || mobileKeys.right;
+  const sprint = keys['shift'] || mobileKeys.sprint;
+
+  if (up) dy -= 1;
+  if (down) dy += 1;
+  if (left) dx -= 1;
+  if (right) dx += 1;
+
+  if (dx !== 0 || dy !== 0) {
+    const len = Math.hypot(dx, dy);
+    dx /= len; dy /= len;
+    player.angle = Math.atan2(dy, dx);
+  }
+
+  let spd = player.speed;
+  if (sprint) spd *= 1.6;
+  if (turboActive) spd *= 2;
+
+  moveEntity(player, dx * spd * dt, dy * spd * dt);
+
+  // Spin knockback on others
+  if (spinActive) {
+    player.spinAngle += dt * 15;
+    bots.forEach(b => {
+      if (dist(player, b) < 60) {
+        const a = Math.atan2(b.y - player.y, b.x - player.x);
+        b.x += Math.cos(a) * 80 * dt;
+        b.y += Math.sin(a) * 80 * dt;
+      }
+    });
+  }
+
+  // Scared effect
+  if (player.scaredTimer > 0) {
+    player.scaredTimer -= dt;
+    player.scared = player.scaredTimer > 0;
+  }
+
+  player.eyeTimer += dt;
+  if (player.eyeTimer > 3 + Math.random() * 2) {
+    player.blinking = true;
+    player.eyeTimer = 0;
+    setTimeout(() => { player.blinking = false; }, 150);
+  }
+}
+
+function updateBots(dt) {
+  bots.forEach(bot => {
+    // Find nearest coin
+    let nearest = null, nd = Infinity;
+    coins.forEach(c => {
+      const d = dist(bot, c);
+      if (d < nd) { nd = d; nearest = c; }
+    });
+
+    // Run from teacher
+    let fleeing = false;
+    teachers.forEach(t => {
+      if (dist(bot, t) < 200) {
+        fleeing = true;
+        const a = Math.atan2(bot.y - t.y, bot.x - t.x);
+        bot.x += Math.cos(a) * bot.speed * 1.3 * dt;
+        bot.y += Math.sin(a) * bot.speed * 1.3 * dt;
+        bot.scared = true;
+        bot.scaredTimer = 1;
+      }
+    });
+
+    if (!fleeing && nearest) {
+      const a = Math.atan2(nearest.y - bot.y, nearest.x - bot.x);
+      const mdx = Math.cos(a) * bot.speed * dt;
+      const mdy = Math.sin(a) * bot.speed * dt;
+      moveEntity(bot, mdx, mdy);
+      bot.angle = a;
+
+      if (dist(bot, nearest) < 20) {
+        nearest.x = 40 + Math.random() * (WORLD_W - 80);
+        nearest.y = 40 + Math.random() * (WORLD_H - 80);
+        bot.coins = Math.min(bot.coins + 1, targetCoins - 1);
+      }
+    }
+
+    if (bot.scaredTimer > 0) { bot.scaredTimer -= dt; if (bot.scaredTimer <= 0) bot.scared = false; }
+    bot.spinAngle += dt * 2;
+    bot.eyeTimer += dt;
+  });
+}
+
+function updateTeachers(dt) {
+  teachers.forEach(t => {
+    t.speechTimer -= dt;
+    t.chaseTime += dt;
+
+    // Vision: find nearest visible player
+    let target = null;
+    let nearestDist = Infinity;
+
+    const visionRange = ghostActive ? t.visionRange * 0.3 : t.visionRange;
+
+    // Check player
+    const dp = dist(t, player);
+    if (dp < visionRange && !ghostActive) { target = player; nearestDist = dp; }
+
+    // Check bots
+    bots.forEach(bot => {
+      const d = dist(t, bot);
+      if (d < visionRange && d < nearestDist) { target = bot; nearestDist = d; }
+    });
+
+    if (target) {
+      t.state = 'chase';
+      t.speed = 140;
+      if (t.speechTimer <= 0) {
+        showSpeech(SPEECHES[Math.floor(Math.random() * SPEECHES.length)]);
+        t.speechTimer = 3 + Math.random() * 3;
+      }
+      // Scare player
+      if (target === player) {
+        player.scared = true;
+        player.scaredTimer = 0.5;
+      } else {
+        target.scared = true;
+        target.scaredTimer = 0.5;
+      }
+    } else {
+      t.state = 'patrol';
+      t.speed = 80;
+      // Random patrol
+      t.patrolTimer -= dt;
+      if (t.patrolTimer <= 0) {
+        t.patrolTarget = {
+          x: 80 + Math.random() * (WORLD_W - 160),
+          y: 80 + Math.random() * (WORLD_H - 160)
+        };
+        t.patrolTimer = 2 + Math.random() * 3;
+      }
+      target = {x: t.patrolTarget.x, y: t.patrolTarget.y};
+    }
+
+    // Move toward target
+    const tx = target.x - t.x, ty = target.y - t.y;
+    const td = Math.hypot(tx, ty);
+    if (td > 8) {
+      const nx = tx/td, ny = ty/td;
+      t.angle = Math.atan2(ny, nx);
+      moveEntity(t, nx * t.speed * dt, ny * t.speed * dt);
+    }
+
+    // Catch!
+    if (dist(t, player) < 36 && !shieldActive) {
+      catchPlayer(t);
+    }
+    bots.forEach(bot => {
+      if (dist(t, bot) < 36) {
+        bot.coins = Math.max(0, bot.coins - 3);
+        bot.scared = true;
+        bot.scaredTimer = 2;
+      }
+    });
+  });
+}
+
+function catchPlayer(teacher) {
+  if (stunned) return;
+  stunned = true;
+  stunTimer = 2500;
+  player.coins = Math.max(0, player.coins - Math.min(5, player.coins));
+  document.getElementById('stunnedOverlay').style.display = 'block';
+  showAlert('👩‍🏫 НАТАЛИЯ ПОЙМАЛА ТЕБЯ! -5 монет!', 2000);
+  showSpeech(SPEECHES[Math.floor(Math.random() * SPEECHES.length)]);
+  player.x += (Math.random()-0.5) * 80;
+  player.y += (Math.random()-0.5) * 80;
+}
+
+function updateCamera() {
+  const cw = canvas.width, ch = canvas.height;
+  camX = clamp(player.x + player.w/2 - cw/2, 0, WORLD_W - cw);
+  camY = clamp(player.y + player.h/2 - ch/2, 0, WORLD_H - ch);
+}
+
+function checkCoinPickup() {
+  for (let i = coins.length - 1; i >= 0; i--) {
+    const c = coins[i];
+    const px = player.x + player.w/2, py = player.y + player.h/2;
+    if (Math.hypot(px - c.x, py - c.y) < 22) {
+      coins.splice(i, 1);
+      player.coins++;
+      const av = 5 + Math.floor(Math.random()*6);
+      player.avlyutar += av;
+      showAvlyutar(c.x, c.y, av);
+      document.getElementById('hudCoins').textContent = player.coins + ' / ' + targetCoins;
+    }
+  }
+}
+
+function checkWin() {
+  if (player.coins >= targetCoins) triggerWin();
+}
+
+function maintainCoinCount() {
+  if (coins.length < 20) spawnCoins(5);
+}
+
+function updateLeaderboard() {
+  const all = [{nick: playerNick, coins: player.coins, me: true}, ...bots.map(b => ({nick:b.nick, coins:b.coins, me:false}))];
+  all.sort((a,b) => b.coins - a.coins);
+  const top5 = all.slice(0,5);
+  let html = '';
+  top5.forEach((p, i) => {
+    html += `<div class="lb-row${p.me?' me':''}"><span>${i===0?'🥇':i===1?'🥈':i===2?'🥉':'  '} ${p.nick}</span><span>🪙${p.coins}</span></div>`;
+  });
+  document.getElementById('lbRows').innerHTML = html;
+}
+
+function updateMiniMap() {
+  mctx.clearRect(0, 0, 80, 60);
+  mctx.fillStyle = 'rgba(26,58,42,0.9)';
+  mctx.fillRect(0,0,80,60);
+
+  const scaleX = 80 / WORLD_W, scaleY = 60 / WORLD_H;
+
+  // Desks
+  mctx.fillStyle = '#6b4226';
+  desks.forEach(d => mctx.fillRect(d.x*scaleX, d.y*scaleY, d.w*scaleX, d.h*scaleY));
+
+  // Coins
+  mctx.fillStyle = '#ffd700';
+  coins.forEach(c => { mctx.beginPath(); mctx.arc(c.x*scaleX, c.y*scaleY, 1.5, 0, Math.PI*2); mctx.fill(); });
+
+  // Bots
+  mctx.fillStyle = '#88aaff';
+  bots.forEach(b => mctx.fillRect(b.x*scaleX-2, b.y*scaleY-2, 4, 4));
+
+  // Teachers
+  mctx.fillStyle = '#ff4444';
+  teachers.forEach(t => { mctx.beginPath(); mctx.arc(t.x*scaleX, t.y*scaleY, 3, 0, Math.PI*2); mctx.fill(); });
+
+  // Player
+  mctx.fillStyle = '#ffd700';
+  mctx.beginPath();
+  mctx.arc(player.x*scaleX, player.y*scaleY, 4, 0, Math.PI*2);
+  mctx.fill();
+}
+
+// ---- RENDER ----
+function render() {
+  const cw = canvas.width, ch = canvas.height;
+  ctx.clearRect(0,0,cw,ch);
+
+  // Background (floor)
+  ctx.save();
+  ctx.translate(-camX, -camY);
+  drawWorld();
+  ctx.restore();
+}
+
+function drawWorld() {
+  // Floor
+  ctx.fillStyle = '#c8b89a';
+  ctx.fillRect(0,0,WORLD_W,WORLD_H);
+
+  // Floor tiles
+  ctx.strokeStyle = 'rgba(180,160,130,0.4)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x <= WORLD_W; x += 80) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,WORLD_H); ctx.stroke(); }
+  for (let y = 0; y <= WORLD_H; y += 80) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(WORLD_W,y); ctx.stroke(); }
+
+  // Walls
+  ctx.fillStyle = '#4a6741';
+  walls.forEach(w => ctx.fillRect(w.x, w.y, w.w, w.h));
+
+  // Blackboard (top)
+  ctx.fillStyle = '#1a3a2a';
+  ctx.fillRect(200, 30, WORLD_W-400, 60);
+  ctx.strokeStyle = '#8B5E3C';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(200, 30, WORLD_W-400, 60);
+  ctx.fillStyle = 'rgba(245,240,224,0.7)';
+  ctx.font = 'bold 28px Russo One, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('📚 КЛАСС 4A — С Ш П 📚', WORLD_W/2, 70);
+
+  // Teacher desk
+  ctx.fillStyle = '#8B5E3C';
+  ctx.fillRect(WORLD_W/2-70, 110, 140, 70);
+  ctx.fillStyle = '#a07040';
+  ctx.fillRect(WORLD_W/2-65, 115, 130, 60);
+
+  // Desks
+  desks.forEach(d => {
+    ctx.fillStyle = '#c4955a';
+    ctx.fillRect(d.x, d.y, d.w, d.h);
+    ctx.fillStyle = '#a07040';
+    ctx.fillRect(d.x+4, d.y+4, d.w-8, d.h-8);
+    // Legs
+    ctx.fillStyle = '#6b4226';
+    [[4,d.h],[d.w-8,d.h]].forEach(([lx,ly]) => ctx.fillRect(d.x+lx, d.y+ly-2, 6, 8));
+  });
+
+  // Coins
+  coins.forEach(c => {
+    const bob = Math.sin(c.anim) * 3;
+    // Glow
+    const grd = ctx.createRadialGradient(c.x, c.y+bob, 0, c.x, c.y+bob, 16);
+    grd.addColorStop(0, 'rgba(255,215,0,0.4)');
+    grd.addColorStop(1, 'transparent');
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc(c.x, c.y+bob, 16, 0, Math.PI*2);
+    ctx.fill();
+    // Coin
+    ctx.fillStyle = '#ffd700';
+    ctx.beginPath();
+    ctx.arc(c.x, c.y+bob, c.r, 0, Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = '#b8860b';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = '#b8860b';
+    ctx.font = 'bold 9px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('₿', c.x, c.y+bob+3.5);
+  });
+
+  // Bots
+  bots.forEach(b => drawChair(b, '#88aaff', b.nick, false, b.scared, b.spinAngle, b.eyeTimer));
+
+  // Teachers
+  teachers.forEach(t => drawTeacher(t));
+
+  // Player
+  drawChair(player, ghostActive ? 'rgba(100,200,255,0.5)' : shieldActive ? '#44ff88' : '#ffd700', playerNick, true, player.scared, player.spinAngle, player.eyeTimer);
+
+  // Shield ring
+  if (shieldActive) {
+    ctx.strokeStyle = 'rgba(68,255,136,0.6)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(player.x+player.w/2, player.y+player.h/2, 30, 0, Math.PI*2);
+    ctx.stroke();
+  }
+
+  // Ghost aura
+  if (ghostActive) {
+    ctx.strokeStyle = 'rgba(100,200,255,0.4)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4,4]);
+    ctx.beginPath();
+    ctx.arc(player.x+player.w/2, player.y+player.h/2, 28, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+}
+
+function drawChair(e, color, nick, isPlayer, scared, spinAngle, eyeTimer) {
+  const cx = e.x + e.w/2, cy = e.y + e.h/2;
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  if (scared) {
+    ctx.rotate(Math.sin(Date.now()*0.02)*0.2);
+  }
+
+  const w = e.w, h = e.h;
+
+  // Chair legs
+  ctx.fillStyle = '#5a3f28';
+  [[-w*0.35,-h*0.3],[w*0.35,-h*0.3],[-w*0.35,h*0.15],[w*0.35,h*0.15]].forEach(([lx,ly]) => {
+    ctx.fillRect(lx-3, ly, 6, h*0.5);
+  });
+
+  // Chair seat
+  const r = 8;
+  ctx.fillStyle = color;
+  roundRect(ctx, -w/2+2, -h/2+8, w-4, h*0.55, r);
+  ctx.fill();
+
+  // Seat shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.1)';
+  roundRect(ctx, -w/2+4, -h/2+14, w-8, h*0.45, 6);
+  ctx.fill();
+
+  // Backrest
+  ctx.fillStyle = color;
+  roundRect(ctx, -w/2+4, -h/2, w-8, h*0.38, 6);
+  ctx.fill();
+
+  // Eyes on backrest
+  const eyeY = -h/2 + h*0.16;
+  const blinking = e.blinking || scared;
+
+  // Left eye
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.ellipse(-7, eyeY, 7, blinking?1:7, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // Right eye
+  ctx.beginPath();
+  ctx.ellipse(7, eyeY, 7, blinking?1:7, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  if (!blinking) {
+    // Pupils
+    const lookX = scared ? Math.cos(Date.now()*0.005)*3 : 0;
+    const lookY = scared ? Math.sin(Date.now()*0.007)*3 : 1;
+    ctx.fillStyle = scared ? '#ff4444' : '#1a1a1a';
+    ctx.beginPath();
+    ctx.arc(-7+lookX, eyeY+lookY, 3.5, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(7+lookX, eyeY+lookY, 3.5, 0, Math.PI*2);
+    ctx.fill();
+
+    // Shine
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(-7+lookX-1.5, eyeY+lookY-1.5, 1.2, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(7+lookX-1.5, eyeY+lookY-1.5, 1.2, 0, Math.PI*2);
+    ctx.fill();
+
+    // Scared eyebrows
+    if (scared) {
+      ctx.strokeStyle = '#ff4444';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-12, eyeY-9); ctx.lineTo(-3, eyeY-7);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(12, eyeY-9); ctx.lineTo(3, eyeY-7);
+      ctx.stroke();
+    }
+  }
+
+  // Nick
+  ctx.fillStyle = isPlayer ? '#ffd700' : 'rgba(255,255,255,0.85)';
+  ctx.font = `bold ${isPlayer ? 11 : 10}px Nunito, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText(nick, 0, h/2 + 14);
+
+  // Spin effect
+  if (spinAngle && isPlayer && spinActive) {
+    ctx.strokeStyle = 'rgba(100,200,255,0.6)';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 3; i++) {
+      const a = spinAngle + (i/3)*Math.PI*2;
+      ctx.beginPath();
+      ctx.arc(0, 0, 30, a, a+0.8);
+      ctx.stroke();
+    }
+  }
+
+  ctx.restore();
+}
+
+function drawTeacher(t) {
+  const cx = t.x + t.w/2, cy = t.y + t.h/2;
+  const chasing = t.state === 'chase';
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  if (chasing) ctx.rotate(Math.sin(Date.now()*0.015)*0.15);
+
+  // Body (teacher silhouette)
+  ctx.fillStyle = chasing ? '#cc2200' : '#6b3a6b';
+  roundRect(ctx, -16, -18, 32, 36, 10);
+  ctx.fill();
+
+  // Head
+  ctx.fillStyle = '#f5c5a0';
+  ctx.beginPath();
+  ctx.arc(0, -22, 14, 0, Math.PI*2);
+  ctx.fill();
+
+  // Hair (bun)
+  ctx.fillStyle = '#3a2010';
+  ctx.beginPath();
+  ctx.arc(0, -30, 9, 0, Math.PI*2);
+  ctx.fill();
+
+  // Eyes
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.ellipse(-5, -22, 4, 4, 0, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(5, -22, 4, 4, 0, 0, Math.PI*2); ctx.fill();
+
+  // Pupils (angry)
+  ctx.fillStyle = chasing ? '#ff0000' : '#1a1a1a';
+  ctx.beginPath(); ctx.arc(-5, -21, 2, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(5, -21, 2, 0, Math.PI*2); ctx.fill();
+
+  // Angry brows
+  ctx.strokeStyle = '#3a2010';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(-9,-27); ctx.lineTo(-1,-25); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(9,-27); ctx.lineTo(1,-25); ctx.stroke();
+
+  // Name
+  ctx.fillStyle = chasing ? '#ff4444' : '#ff88aa';
+  ctx.font = 'bold 11px Nunito, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('👩‍🏫 Наталия', 0, 26);
+
+  // Chase aura
+  if (chasing) {
+    const grd = ctx.createRadialGradient(0,0,10,0,0,50);
+    grd.addColorStop(0,'rgba(255,0,0,0.15)');
+    grd.addColorStop(1,'transparent');
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc(0,0,50,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y);
+  ctx.arcTo(x+w, y, x+w, y+r, r);
+  ctx.lineTo(x+w, y+h-r);
+  ctx.arcTo(x+w, y+h, x+w-r, y+h, r);
+  ctx.lineTo(x+r, y+h);
+  ctx.arcTo(x, y+h, x, y+h-r, r);
+  ctx.lineTo(x, y+r);
+  ctx.arcTo(x, y, x+r, y, r);
+  ctx.closePath();
+}
+</script>
+</body>
+</html>
